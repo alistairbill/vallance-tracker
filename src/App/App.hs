@@ -51,7 +51,7 @@ api' :: Proxy API'
 api' = Proxy
 
 writeJS :: FilePath -> IO ()
-writeJS = writeJSForAPI api vanillaJS
+writeJS = writeJSForAPI api . vanillaJSWith $ defCommonGeneratorOptions { moduleName = "module.exports" }
 
 startApp :: Configuration -> IO ()
 startApp config = do
