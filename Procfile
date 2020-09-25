@@ -1,1 +1,1 @@
-web: stack exec vallance-tracker-exe
+web: vallance-tracker-exe
