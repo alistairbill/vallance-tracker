@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cbdceb0324ec25d811acc20fc71e5eb38c3853c9a753bd11ea904025cba2ccf7
+-- hash: 11a1635d913a534c0d8bb2ba1523282dc638f40cc45c0e4df7846bb384eb1e3b
 
 name:           vallance-tracker
 version:        0.1.0.0
@@ -27,18 +27,20 @@ library
   exposed-modules:
       App.APIRequest
       App.App
+      App.Db
+      App.Extrapolate
+      App.Prelude
       App.Types
   other-modules:
       Paths_vallance_tracker
   hs-source-dirs:
       src
+  default-extensions: NoImplicitPrelude OverloadedStrings
   build-depends:
       aeson
     , base >=4.7 && <5
-    , bytestring
-    , containers
-    , filepath
     , postgresql-simple
+    , relude
     , req
     , resource-pool
     , servant-js
@@ -58,10 +60,9 @@ executable vallance-tracker-exe
   build-depends:
       aeson
     , base
-    , bytestring
-    , containers
     , filepath
     , postgresql-simple
+    , relude
     , req
     , resource-pool
     , servant-js
@@ -83,13 +84,11 @@ test-suite vallance-tracker-test
   build-depends:
       aeson
     , base
-    , bytestring
-    , containers
-    , filepath
     , hspec
     , hspec-wai
     , hspec-wai-json
     , postgresql-simple
+    , relude
     , req
     , resource-pool
     , servant-js

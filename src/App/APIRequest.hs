@@ -1,20 +1,16 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
 module App.APIRequest where
 
+import App.Prelude
 import Data.Aeson
-import Data.Aeson.TH
 import Data.Aeson.Types (Parser, parseMaybe)
-import Data.Maybe (fromMaybe)
 import Network.HTTP.Req
-import qualified Data.Map.Strict as Map
-import App.Types (DateNewCases(..))
-import Data.Time.Calendar (Day)
+import App.Types
 
 cases :: Value -> Parser [DateNewCases]
-cases = withObject "cases" $ (.: "data")
+cases = withObject "cases" (.: "data")
 
 casesRequest :: Req [DateNewCases]
 casesRequest = let

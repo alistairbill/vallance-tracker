@@ -1,53 +1,14 @@
 {-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE OverloadedStrings       #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
 module App.App where
 
+import App.Prelude
 import App.Types
-import App.APIRequest
-import Control.Monad
-import Data.ByteString (ByteString)
-import Data.ByteString.Char8 as B8 (pack)
-import Data.Maybe (fromMaybe)
-import Data.Time.Calendar
-import Data.Time.Clock
-import Control.Applicative (liftA2)
-import Control.Exception (bracket)
+import App.Db
 import Control.Monad.IO.Class (liftIO)
-import Data.Pool
-import Database.PostgreSQL.Simple
-import Network.HTTP.Req (runReq, defaultHttpConfig)
-import Network.Wai
-import Network.Wai.Handler.Warp
+import Network.Wai.Handler.Warp (run)
 import Servant
 import Servant.JS
-
-type DBConnString = ByteString
-
-initDB :: DBConnString -> IO ()
-initDB connStr = bracket (connectPostgreSQL connStr) close $ \conn -> do
-  execute_ conn
-    "CREATE TABLE IF NOT EXISTS cases (date DATE NOT NULL PRIMARY KEY, new_cases INTEGER NOT NULL)"
-  execute_ conn
-    "CREATE TABLE IF NOT EXISTS example_scenario (date DATE NOT NULL PRIMARY KEY, new_cases INTEGER NOT NULL)"
-  executeMany conn "INSERT INTO example_scenario (date, new_cases) VALUES (?, ?) ON CONFLICT (date) DO NOTHING" extrapolatedScenario
-  return ()
-  
-extrapolatedScenario :: [DateNewCases]
-extrapolatedScenario = map extrap [1..28]
-  where sep = fromGregorian 2020 9 15
-        cases = 3105
-        extrap n = let factor = 2 ** ((fromIntegral n) / 7)
-          in DateNewCases (addDays (fromIntegral n) sep) (round (factor * cases))
-
-
-initConnectionPool :: DBConnString -> IO (Pool Connection)
-initConnectionPool connStr =
-  createPool (connectPostgreSQL connStr) close
-    2 -- stripes
-    60 -- unused connections kept open for 1 minute
-    10 -- max 10 connections per stripe
 
 type API = "cases" :> Get '[JSON] CasesResponse
 
@@ -64,42 +25,19 @@ writeJS = writeJSForAPI api . vanillaJSWith $ defCommonGeneratorOptions { module
 
 startApp :: Configuration -> IO ()
 startApp config = do
-  let connBs = B8.pack . connStr $ config
+  let connBs = encodeUtf8 . connStr $ config
   pool <- initConnectionPool connBs
   initDB connBs
   run (port config) (serve api' $ server' pool)
 
-updateDB :: Pool Connection -> IO ()
-updateDB conns = withResource conns $ \conn -> do
-  [Only maxDate] <- (query_ conn "SELECT MAX(date) FROM cases" :: IO [Only (Maybe Day)])
-  currentDate <- utctDay <$> getCurrentTime
-  let diff = fromMaybe 1 $ diffDays currentDate <$> maxDate
-      action = case diff of
-        0 -> return ()
-        _ -> do
-          dateCases <- getCases
-          executeMany conn "INSERT INTO cases (date, new_cases) VALUES (?, ?) ON CONFLICT (date) DO UPDATE SET new_cases = excluded.new_cases" dateCases
-          return ()
-  action
-
-
-server :: Pool Connection -> Server API
-server conns = getCases
+server :: DBConn -> Server API
+server conn = getCases
   where getCases :: Handler CasesResponse
         getCases = do
-          liftIO $ updateDB conns
-          r <- liftIO $ getReality conns
-          f <- liftIO $ getExampleScenario conns
+          liftIO $ updateDB conn
+          r <- liftIO $ getReality conn
+          f <- liftIO $ getExampleScenario conn
           return $ CasesResponse f r
 
-startDate :: Only Day
-startDate = Only $ fromGregorian 2020 6 31
-
-getExampleScenario :: Pool Connection -> IO [DateNewCases]
-getExampleScenario conns = withResource conns $ \conn -> query conn "SELECT * FROM example_scenario WHERE date >= ?" startDate
-
-getReality :: Pool Connection -> IO [DateNewCases]
-getReality conns = withResource conns $ \conn -> query conn "SELECT * FROM cases WHERE date >= ?" startDate
-
-server' :: Pool Connection -> Server API'
-server' conns = server conns :<|> serveDirectoryFileServer "frontend/dist"
+server' :: DBConn -> Server API'
+server' conn = server conn :<|> serveDirectoryFileServer "frontend/dist"
