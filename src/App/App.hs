@@ -6,7 +6,6 @@ module App.App where
 import App.Db
 import App.Prelude
 import App.Types
-import Control.Monad.IO.Class (liftIO)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.EnforceHTTPS
 import Servant
