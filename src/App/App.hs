@@ -1,19 +1,22 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+
 module App.App where
 
+import App.Db
 import App.Prelude
 import App.Types
-import App.Db
 import Control.Monad.IO.Class (liftIO)
 import Network.Wai.Handler.Warp (run)
-import Network.Wai.Middleware.EnforceHTTPS as HTTPS
+import Network.Wai.Middleware.EnforceHTTPS
 import Servant
 import Servant.JS
 
 type API = "cases" :> Get '[JSON] CasesResponse
 
 type API' = API :<|> Raw
+
+type AppM = ReaderT DBConn Handler
 
 api :: Proxy API
 api = Proxy
@@ -22,23 +25,28 @@ api' :: Proxy API'
 api' = Proxy
 
 writeJS :: FilePath -> IO ()
-writeJS = writeJSForAPI api . vanillaJSWith $ defCommonGeneratorOptions { moduleName = "module.exports" }
+writeJS = writeJSForAPI api . vanillaJSWith $ defCommonGeneratorOptions {moduleName = "module.exports"}
 
 startApp :: Configuration -> IO ()
 startApp config = do
   let connBs = encodeUtf8 . connStr $ config
   pool <- initConnectionPool connBs
   initDB connBs
-  run (port config) (HTTPS.withResolver HTTPS.xForwardedProto . serve api' $ server' pool)
+  run (port config) (withResolver xForwardedProto $ mkApp pool)
 
-server :: DBConn -> Server API
-server conn = getCases
-  where getCases :: Handler CasesResponse
-        getCases = do
-          liftIO $ updateDB conn
-          r <- liftIO $ getReality conn
-          f <- liftIO $ getExampleScenario conn
-          return $ CasesResponse f r
+mkApp :: DBConn -> Application
+mkApp conn = serve api' $ hoistServer api' (`runReaderT` conn) server'
 
-server' :: DBConn -> Server API'
-server' conn = server conn :<|> serveDirectoryFileServer "frontend/dist"
+server :: ServerT API AppM
+server = getCases
+  where
+    getCases :: AppM CasesResponse
+    getCases = do
+      conn <- ask
+      liftIO $ updateDB conn
+      reality <- liftIO $ getReality conn
+      example <- liftIO $ getExampleScenario conn
+      return $ CasesResponse example reality
+
+server' :: ServerT API' AppM
+server' = server :<|> serveDirectoryFileServer "frontend/dist"

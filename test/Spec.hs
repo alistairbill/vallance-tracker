@@ -1,5 +1,6 @@
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+
 module Main (main) where
 
 import App.APIRequest
@@ -12,10 +13,10 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-    describe "APIRequest" $
-      it "works" $ do
-        cases <- getCases
-        length cases `shouldSatisfy` (> 0)
+  describe "APIRequest" $
+    it "works" $ do
+      cases <- getCases
+      length cases `shouldSatisfy` (> 0)
 
 {-
 spec :: Spec

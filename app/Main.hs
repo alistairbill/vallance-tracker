@@ -7,9 +7,9 @@ import System.FilePath ((</>))
 
 getConfig :: IO Configuration
 getConfig = do
-    Just port <- fmap (read :: String -> Int) <$> lookupEnv "PORT"
-    Just connStr <- lookupEnv "DATABASE_URL"
-    return $ Configuration { port = port, connStr = connStr }
+  Just port <- fmap (read :: String -> Int) <$> lookupEnv "PORT"
+  Just connStr <- lookupEnv "DATABASE_URL"
+  return $ Configuration {port = port, connStr = connStr}
 
 generateJs :: IO ()
 generateJs = writeJS ("frontend" </> "src" </> "api.js")
