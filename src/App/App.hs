@@ -7,6 +7,7 @@ import App.Types
 import App.Db
 import Control.Monad.IO.Class (liftIO)
 import Network.Wai.Handler.Warp (run)
+import Network.Wai.Middleware.EnforceHTTPS as HTTPS
 import Servant
 import Servant.JS
 
@@ -28,7 +29,7 @@ startApp config = do
   let connBs = encodeUtf8 . connStr $ config
   pool <- initConnectionPool connBs
   initDB connBs
-  run (port config) (serve api' $ server' pool)
+  run (port config) (HTTPS.withResolver HTTPS.xForwardedProto . serve api' $ server' pool)
 
 server :: DBConn -> Server API
 server conn = getCases

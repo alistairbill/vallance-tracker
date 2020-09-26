@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 11a1635d913a534c0d8bb2ba1523282dc638f40cc45c0e4df7846bb384eb1e3b
+-- hash: 13e950e63158e6cffe736c6dc03725d48df1b8494d54d2674e212148404b669a
 
 name:           vallance-tracker
 version:        0.1.0.0
@@ -47,6 +47,7 @@ library
     , servant-server
     , time
     , wai
+    , wai-enforce-https
     , warp
   default-language: Haskell2010
 
@@ -70,6 +71,7 @@ executable vallance-tracker-exe
     , time
     , vallance-tracker
     , wai
+    , wai-enforce-https
     , warp
   default-language: Haskell2010
 
@@ -96,5 +98,6 @@ test-suite vallance-tracker-test
     , time
     , vallance-tracker
     , wai
+    , wai-enforce-https
     , warp
   default-language: Haskell2010

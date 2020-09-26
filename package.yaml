@@ -29,6 +29,7 @@ dependencies:
 - servant-server
 - time
 - wai
+- wai-enforce-https
 - warp
 
 library:
