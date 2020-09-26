@@ -1,63 +1,84 @@
-import { getCases } from './api.js';
 import dayjs from 'dayjs';
-const c = document.getElementById("chart");
-const ctx = c.getContext("2d");
+import { getCases } from './api';
 
-function drawChart()
-{
-    ctx.font = "24px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("UK", 70, 250);
-    ctx.fillText("reported", 70, 275);
-    ctx.fillText("cases", 70, 300);
-    ctx.fillText("per day", 70, 325);
-    ctx.font = "bold 16px sans-serif";
-    ctx.textAlign = "right";
-    for (let i = 0; i <= 5; i++) {
-        ctx.fillText(`${i * 10000}`, 190, 550 - i * 100);
-    }
-    ctx.font = "16px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("30/06", 200, 580);
-    ctx.fillText("31/07", 200 + 8 * 32, 580);
-    ctx.fillText("31/08", 200 + 8 * 63, 580);
-    ctx.fillText("30/09", 200 + 8 * 93, 580);
-    
+const canvas = document.getElementById('chart');
+const ctx = canvas.getContext('2d');
 
+const barWidth = 5;
+const barGap = 3;
+const barX = 202;
+const barY = 550;
+const casesPerPixel = 100;
+
+function dateToXCoord(date) {
+  const diff = date.diff('2020-06-30', 'day');
+  return barX + diff * (barWidth + barGap);
 }
 
-drawChart();
+function drawAxes() {
+  // y axis label
+  ctx.font = '24px sans-serif';
+  ctx.textAlign = 'center';
+  const x = 70;
+  const y = 250;
+  const ySpacing = 25;
+  ['UK', 'reported', 'cases', 'per day'].forEach((text, index) => {
+    ctx.fillText(text, x, y + ySpacing * index);
+  });
 
-function drawSep(numCases)
-{
-    ctx.font = "bold 24px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`${numCases.toLocaleString()} new cases`, 750, 370);
-    ctx.fillText("on 15 September", 750, 400);
-    ctx.moveTo(820, 450);
-    ctx.lineTo(820, 500);
-    ctx.stroke();
-    ctx.moveTo(824, 500);
-    ctx.lineTo(820, 508);
-    ctx.lineTo(816, 500);
-    ctx.fill();
+  // y axis
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 50000; i += 10000) {
+    ctx.fillText(i, barX - 10, barY - i / casesPerPixel);
+  }
 
+  // x axis
+  ctx.font = '16px sans-serif';
+  ctx.textAlign = 'center';
+  for (let month = 6; month <= 9; month += 1) {
+    const date = dayjs().year(2020).month(month - 1).endOf('month');
+    const xCoord = dateToXCoord(date) + barGap;
+    ctx.fillText(date.format('DD/MM'), xCoord, barY + 30);
+  }
 }
 
-function renderBar(dateNewCases, colour)
-{
-    const diff = dayjs(dateNewCases.date).diff("2020-06-30", "day");
-    ctx.beginPath();
-    const height = dateNewCases.newCases / 100;
-    ctx.rect(202 + diff * 8, 550 - height, 5, height);
-    ctx.fillStyle = colour;
-    ctx.fill();
+function drawDownArrow(x, y, length) {
+  ctx.moveTo(x, y);
+  ctx.lineTo(x, y + length);
+  ctx.stroke();
 
+  // arrowhead
+  ctx.moveTo(x + 4, y + length);
+  ctx.lineTo(x, y + length + 8);
+  ctx.lineTo(x - 4, y + length);
+  ctx.fill();
 }
+
+function drawLabel(numCases) {
+  ctx.font = 'bold 24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${numCases.toLocaleString()} new cases`, 750, 370);
+  ctx.fillText('on 15 September', 750, 400);
+  const date = dayjs('2020-09-15');
+  const xCoord = dateToXCoord(date) + barGap;
+  drawDownArrow(xCoord, 450, 50);
+}
+
+function drawBar(dateNewCases, colour) {
+  const date = dayjs(dateNewCases.date);
+  const height = dateNewCases.newCases / casesPerPixel;
+  ctx.beginPath();
+  ctx.rect(dateToXCoord(date), barY - height, barWidth, height);
+  ctx.fillStyle = colour;
+  ctx.fill();
+}
+
+drawAxes();
 
 getCases((cases) => {
-    const { newCases: sepCases } = cases.reality.find(({ date }) => date == "2020-09-15");
-    drawSep(sepCases);
-    cases.exampleScenario.forEach(c => renderBar(c, "#F20003"));
-    cases.reality.forEach(c => renderBar(c, "#00A2DB"));
+  const { newCases: sepCases } = cases.reality.find(({ date }) => date === '2020-09-15');
+  drawLabel(sepCases);
+  cases.exampleScenario.forEach((c) => drawBar(c, '#F20003'));
+  cases.reality.forEach((c) => drawBar(c, '#00A2DB'));
 }, () => {});

@@ -3,6 +3,9 @@
 }
 
 #chart {
-    width: 80vw;
-    height: 40vw;
+    width: 90vw;
+    height: 45vw;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
 }
