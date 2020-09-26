@@ -25,7 +25,7 @@ instance FromJSON DateNewCases
 instance ToJSON DateNewCases
 
 data CasesResponse = CasesResponse
-    { fiction :: [DateNewCases]
+    { exampleScenario :: [DateNewCases]
     , reality :: [DateNewCases]
     } deriving (Generic, Show)
 instance ToJSON CasesResponse

@@ -31,7 +31,16 @@ initDB connStr = bracket (connectPostgreSQL connStr) close $ \conn -> do
     "CREATE TABLE IF NOT EXISTS cases (date DATE NOT NULL PRIMARY KEY, new_cases INTEGER NOT NULL)"
   execute_ conn
     "CREATE TABLE IF NOT EXISTS example_scenario (date DATE NOT NULL PRIMARY KEY, new_cases INTEGER NOT NULL)"
+  executeMany conn "INSERT INTO example_scenario (date, new_cases) VALUES (?, ?) ON CONFLICT (date) DO NOTHING" extrapolatedScenario
   return ()
+  
+extrapolatedScenario :: [DateNewCases]
+extrapolatedScenario = map extrap [1..28]
+  where sep = fromGregorian 2020 9 15
+        cases = 3105
+        extrap n = let factor = 2 ** ((fromIntegral n) / 7)
+          in DateNewCases (addDays (fromIntegral n) sep) (round (factor * cases))
+
 
 initConnectionPool :: DBConnString -> IO (Pool Connection)
 initConnectionPool connStr =
@@ -60,14 +69,6 @@ startApp config = do
   initDB connBs
   run (port config) (serve api' $ server' pool)
 
-{-
-fanciful :: Int -> DateNewCases
-fanciful n = let sep = read "2020-09-15"
-                 cases = 2649.0
-                 factor = 2 ** ((fromIntegral n) / 7)
-  in DateNewCases (addDays (fromIntegral n) sep) (round (factor * cases))
--}
-
 updateDB :: Pool Connection -> IO ()
 updateDB conns = withResource conns $ \conn -> do
   [Only maxDate] <- (query_ conn "SELECT MAX(date) FROM cases" :: IO [Only (Maybe Day)])
@@ -88,14 +89,14 @@ server conns = getCases
         getCases = do
           liftIO $ updateDB conns
           r <- liftIO $ getReality conns
-          f <- liftIO $ getFiction conns
+          f <- liftIO $ getExampleScenario conns
           return $ CasesResponse f r
 
 startDate :: Only Day
 startDate = Only $ fromGregorian 2020 6 31
 
-getFiction :: Pool Connection -> IO [DateNewCases]
-getFiction conns = withResource conns $ \conn -> query conn "SELECT * FROM example_scenario WHERE date >= ?" startDate
+getExampleScenario :: Pool Connection -> IO [DateNewCases]
+getExampleScenario conns = withResource conns $ \conn -> query conn "SELECT * FROM example_scenario WHERE date >= ?" startDate
 
 getReality :: Pool Connection -> IO [DateNewCases]
 getReality conns = withResource conns $ \conn -> query conn "SELECT * FROM cases WHERE date >= ?" startDate

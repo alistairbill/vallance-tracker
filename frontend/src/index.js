@@ -58,6 +58,6 @@ function renderBar(dateNewCases, colour)
 getCases((cases) => {
     const { newCases: sepCases } = cases.reality.find(({ date }) => date == "2020-09-15");
     drawSep(sepCases);
-    cases.fiction.forEach(c => renderBar(c, "#F20003"));
+    cases.exampleScenario.forEach(c => renderBar(c, "#F20003"));
     cases.reality.forEach(c => renderBar(c, "#00A2DB"));
 }, () => {});
