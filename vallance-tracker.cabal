@@ -4,16 +4,16 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 13e950e63158e6cffe736c6dc03725d48df1b8494d54d2674e212148404b669a
+-- hash: d3fc8bf239eead84075604ec24c19f5292f7ba9517d84a69fa72485590835a57
 
 name:           vallance-tracker
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/vallance-tracker#readme>
-homepage:       https://github.com/githubuser/vallance-tracker#readme
-bug-reports:    https://github.com/githubuser/vallance-tracker/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2020 Author name here
+description:    Please see the README on GitHub at <https://github.com/alistairbill/vallance-tracker#readme>
+homepage:       https://github.com/alistairbill/vallance-tracker#readme
+bug-reports:    https://github.com/alistairbill/vallance-tracker/issues
+author:         Alistair Bill
+maintainer:     alistair.bill@gmail.com
+copyright:      2020 Alistair Bill
 license:        BSD3
 build-type:     Simple
 extra-source-files:
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/vallance-tracker
+  location: https://github.com/alistairbill/vallance-tracker
 
 library
   exposed-modules:
@@ -57,7 +57,7 @@ executable vallance-tracker-exe
       Paths_vallance_tracker
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base
@@ -82,7 +82,7 @@ test-suite vallance-tracker-test
       Paths_vallance_tracker
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
     , base

@@ -1,15 +1,17 @@
+{-# LANGUAGE TypeApplications #-}
 module Main where
 
 import App.App
 import App.Types
+import Prelude
 import System.Environment (getArgs, lookupEnv)
 import System.FilePath ((</>))
 
 getConfig :: IO Configuration
 getConfig = do
-  Just port <- fmap (read :: String -> Int) <$> lookupEnv "PORT"
-  Just connStr <- lookupEnv "DATABASE_URL"
-  return $ Configuration {port = port, connStr = connStr}
+  Just envPort <- fmap (read @Int) <$> lookupEnv "PORT"
+  Just envDbUrl <- lookupEnv "DATABASE_URL"
+  return $ Configuration envPort envDbUrl
 
 generateJs :: IO ()
 generateJs = writeJS ("frontend" </> "src" </> "api.js")

@@ -16,8 +16,8 @@ cases = withObject "cases" (.: "data")
 casesRequest :: Req [DateNewCases]
 casesRequest =
   let (url, opts) = [urlQ|https://api.coronavirus.data.gov.uk/v1/data?filters=areaType%3Doverview&structure=%7B%22date%22:%22date%22,%22newCases%22:%22newCasesByPublishDate%22%7D|]
-      json = responseBody <$> req GET url NoReqBody jsonResponse opts
-   in fromMaybe [] . parseMaybe cases <$> json
+      resJson = responseBody <$> req GET url NoReqBody jsonResponse opts
+   in fromMaybe [] . parseMaybe cases <$> resJson
 
 getCases :: IO [DateNewCases]
 getCases = runReq defaultHttpConfig casesRequest

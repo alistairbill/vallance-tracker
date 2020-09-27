@@ -43,9 +43,9 @@ server = getCases
     getCases = do
       conn <- ask
       liftIO $ updateDB conn
-      reality <- liftIO $ getReality conn
+      real <- liftIO $ getReality conn
       example <- liftIO $ getExampleScenario conn
-      return $ CasesResponse example reality
+      return $ CasesResponse example real
 
 server' :: ServerT API' AppM
 server' = server :<|> serveDirectoryFileServer "frontend/dist"

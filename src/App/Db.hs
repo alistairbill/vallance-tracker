@@ -18,16 +18,16 @@ type DBConnString = ByteString
 type DBConn = Pool Connection
 
 initConnectionPool :: DBConnString -> IO (Pool Connection)
-initConnectionPool connStr =
+initConnectionPool dbConnStr =
   createPool
-    (connectPostgreSQL connStr)
+    (connectPostgreSQL dbConnStr)
     close
     2 -- stripes
     60 -- unused connections kept open for 1 minute
     10 -- max 10 connections per stripe
 
 initDB :: DBConnString -> IO ()
-initDB connStr = bracket (connectPostgreSQL connStr) close $ \conn -> do
+initDB dbConnStr = bracket (connectPostgreSQL dbConnStr) close $ \conn -> do
   execute_
     conn
     [sql|CREATE TABLE IF NOT EXISTS cases
