@@ -1,1 +1,4 @@
-src/api.js
+dist
+node_modules
+src/generated
+webpack.config.js

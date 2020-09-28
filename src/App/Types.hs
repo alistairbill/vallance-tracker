@@ -1,22 +1,22 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module App.Types
-  ( Configuration (..),
-    DateNewCases (..),
-    CasesResponse (..),
-  )
-where
+module App.Types where
 
 import App.Prelude
 import Data.Aeson
 import Data.Time.Calendar (Day)
 import Database.PostgreSQL.Simple
+import Data.Swagger
+import Lens.Micro.Platform
 
 data Configuration = Configuration
-  { port :: Int,
-    connStr :: String
+  { _port :: Int,
+    _connStr :: String,
+    _disableHttpsRedirect :: Bool
   }
+makeLenses ''Configuration
 
 data DateNewCases = DateNewCases
   { date :: Day,
@@ -25,8 +25,8 @@ data DateNewCases = DateNewCases
   deriving (Generic, ToRow, FromRow)
 
 instance FromJSON DateNewCases
-
 instance ToJSON DateNewCases
+instance ToSchema DateNewCases
 
 data CasesResponse = CasesResponse
   { exampleScenario :: [DateNewCases],
@@ -35,3 +35,4 @@ data CasesResponse = CasesResponse
   deriving (Generic)
 
 instance ToJSON CasesResponse
+instance ToSchema CasesResponse

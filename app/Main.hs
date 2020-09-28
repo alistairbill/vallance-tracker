@@ -3,24 +3,23 @@ module Main where
 
 import App.App
 import App.Types
+import App.ToSwagger (printSwagger)
 import Prelude
 import System.Environment (getArgs, lookupEnv)
-import System.FilePath ((</>))
+import Data.Maybe (isJust)
 
 getConfig :: IO Configuration
 getConfig = do
   Just envPort <- fmap (read @Int) <$> lookupEnv "PORT"
   Just envDbUrl <- lookupEnv "DATABASE_URL"
-  return $ Configuration envPort envDbUrl
-
-generateJs :: IO ()
-generateJs = writeJS ("frontend" </> "src" </> "api.js")
+  envDisableHttps <- isJust <$> lookupEnv "DISABLE_HTTPS"
+  return $ Configuration envPort envDbUrl envDisableHttps
 
 app :: IO ()
 app = getConfig >>= startApp
 
 parse :: [String] -> IO ()
-parse ["--generate-js"] = generateJs
+parse ["--generate-swagger"] = printSwagger
 parse _ = app
 
 main :: IO ()

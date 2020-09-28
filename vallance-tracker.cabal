@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d3fc8bf239eead84075604ec24c19f5292f7ba9517d84a69fa72485590835a57
+-- hash: f1031b91e1dcb18975d91ce461004d057c3feb3d8b76ab08563aced44cb5d85c
 
 name:           vallance-tracker
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       App.Db
       App.Extrapolate
       App.Prelude
+      App.ToSwagger
       App.Types
   other-modules:
       Paths_vallance_tracker
@@ -39,12 +40,14 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , microlens-platform
     , postgresql-simple
     , relude
     , req
     , resource-pool
-    , servant-js
     , servant-server
+    , servant-swagger
+    , swagger2
     , time
     , wai
     , wai-enforce-https
@@ -62,12 +65,14 @@ executable vallance-tracker-exe
       aeson
     , base
     , filepath
+    , microlens-platform
     , postgresql-simple
     , relude
     , req
     , resource-pool
-    , servant-js
     , servant-server
+    , servant-swagger
+    , swagger2
     , time
     , vallance-tracker
     , wai
@@ -89,12 +94,14 @@ test-suite vallance-tracker-test
     , hspec
     , hspec-wai
     , hspec-wai-json
+    , microlens-platform
     , postgresql-simple
     , relude
     , req
     , resource-pool
-    , servant-js
     , servant-server
+    , servant-swagger
+    , swagger2
     , time
     , vallance-tracker
     , wai

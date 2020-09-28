@@ -9,7 +9,7 @@ import App.Types
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.EnforceHTTPS
 import Servant
-import Servant.JS
+import Lens.Micro.Platform
 
 type API = "cases" :> Get '[JSON] CasesResponse
 
@@ -23,15 +23,14 @@ api = Proxy
 api' :: Proxy API'
 api' = Proxy
 
-writeJS :: FilePath -> IO ()
-writeJS = writeJSForAPI api . vanillaJSWith $ defCommonGeneratorOptions {moduleName = "module.exports"}
-
 startApp :: Configuration -> IO ()
 startApp config = do
-  let connBs = encodeUtf8 . connStr $ config
+  let connBs = encodeUtf8 (config ^. connStr)
   pool <- initConnectionPool connBs
   initDB connBs
-  run (port config) (withResolver xForwardedProto $ mkApp pool)
+  let app = if config ^. disableHttpsRedirect then mkApp pool
+            else withResolver xForwardedProto $ mkApp pool
+  run (config ^. port) app
 
 mkApp :: DBConn -> Application
 mkApp conn = serve api' $ hoistServer api' (`runReaderT` conn) server'

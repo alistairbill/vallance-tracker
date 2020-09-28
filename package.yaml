@@ -22,11 +22,13 @@ dependencies:
 - base >= 4.7 && < 5
 - relude
 - aeson
+- microlens-platform
 - postgresql-simple
 - req
 - resource-pool
-- servant-js
 - servant-server
+- servant-swagger
+- swagger2
 - time
 - wai
 - wai-enforce-https

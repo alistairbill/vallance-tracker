@@ -1,8 +1,11 @@
-import dayjs from 'dayjs';
-import { getCases } from './api';
+import * as dayjs from 'dayjs';
+import { DefaultApiFactory } from './generated';
+import { CasesResponse, DateNewCases } from './generated/api';
 
-const canvas = document.getElementById('chart');
+const canvas = document.getElementById('chart') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
+
+const api = DefaultApiFactory(undefined, fetch, '');
 
 const barWidth = 5;
 const barGap = 3;
@@ -10,7 +13,7 @@ const barX = 202;
 const barY = 550;
 const casesPerPixel = 100;
 
-function dateToXCoord(date) {
+function dateToXCoord(date: dayjs.Dayjs) {
   const diff = date.diff('2020-06-30', 'day');
   return barX + diff * (barWidth + barGap);
 }
@@ -30,7 +33,7 @@ function drawAxes() {
   ctx.font = 'bold 16px sans-serif';
   ctx.textAlign = 'right';
   for (let i = 0; i <= 50000; i += 10000) {
-    ctx.fillText(i, barX - 10, barY - i / casesPerPixel);
+    ctx.fillText(i.toString(), barX - 10, barY - i / casesPerPixel);
   }
 
   // x axis
@@ -43,7 +46,7 @@ function drawAxes() {
   }
 }
 
-function drawDownArrow(x, y, length) {
+function drawDownArrow(x: number, y: number, length: number) {
   ctx.moveTo(x, y);
   ctx.lineTo(x, y + length);
   ctx.stroke();
@@ -55,7 +58,7 @@ function drawDownArrow(x, y, length) {
   ctx.fill();
 }
 
-function drawLabel(numCases) {
+function drawLabel(numCases: number) {
   ctx.font = 'bold 24px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(`${numCases.toLocaleString()} new cases`, 750, 370);
@@ -65,8 +68,8 @@ function drawLabel(numCases) {
   drawDownArrow(xCoord, 450, 50);
 }
 
-function drawBar(dateNewCases, colour) {
-  const date = dayjs(dateNewCases.date);
+function drawBar(dateNewCases: DateNewCases, colour: string) {
+  const date = dayjs(dateNewCases.date as string);
   const height = dateNewCases.newCases / casesPerPixel;
   ctx.beginPath();
   ctx.rect(dateToXCoord(date), barY - height, barWidth, height);
@@ -76,9 +79,9 @@ function drawBar(dateNewCases, colour) {
 
 drawAxes();
 
-getCases((cases) => {
+api.casesGet().then((cases: CasesResponse) => {
   const { newCases: sepCases } = cases.reality.find(({ date }) => date === '2020-09-15');
   drawLabel(sepCases);
   cases.exampleScenario.forEach((c) => drawBar(c, '#F20003'));
   cases.reality.forEach((c) => drawBar(c, '#00A2DB'));
-}, () => {});
+}).catch(() => {});
