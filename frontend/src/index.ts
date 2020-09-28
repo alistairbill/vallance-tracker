@@ -58,12 +58,12 @@ function drawDownArrow(x: number, y: number, length: number) {
   ctx.fill();
 }
 
-function drawLabel(numCases: number) {
+function drawLabel(cases: DateNewCases) {
+  const date = dayjs(cases.date as string);
   ctx.font = 'bold 24px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`${numCases.toLocaleString()} new cases`, 750, 370);
-  ctx.fillText('on 15 September', 750, 400);
-  const date = dayjs('2020-09-15');
+  ctx.fillText(`${cases.newCases.toLocaleString()} new cases`, 750, 370);
+  ctx.fillText(`on ${date.format('D MMMM')}`, 750, 400);
   const xCoord = dateToXCoord(date) + barGap;
   drawDownArrow(xCoord, 450, 50);
 }
@@ -80,7 +80,7 @@ function drawBar(dateNewCases: DateNewCases, colour: string) {
 drawAxes();
 
 api.casesGet().then((cases: CasesResponse) => {
-  const { newCases: sepCases } = cases.reality.find(({ date }) => date === '2020-09-15');
+  const sepCases = cases.reality.find(({ date }) => date === '2020-09-15');
   drawLabel(sepCases);
   cases.exampleScenario.forEach((c) => drawBar(c, '#F20003'));
   cases.reality.forEach((c) => drawBar(c, '#00A2DB'));
